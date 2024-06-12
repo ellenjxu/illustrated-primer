@@ -11,6 +11,16 @@ body {
 	padding: 20px;
 }
 
+.home-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 20px;
+	height: 100vh;
+	background-color: #fff;
+}
+
 .puzzle {
 	flex: 2;
 	padding: 20px;
