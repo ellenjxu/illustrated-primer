@@ -20,6 +20,33 @@ const generateEmptyGrid = () => {
 	return Array.from({length: numRows}).map(() => Array(numCols).fill(0));
 };
 
+const checkPatternInGrid = (grid: number[][], pattern: number[][]) => {
+	if (!pattern || pattern.length === 0 || pattern[0].length === 0) {
+		console.error("Pattern is not defined or is empty");
+		return false;
+	}
+
+	const patternRows = pattern.length;
+	const patternCols = pattern[0].length;
+
+	for (let i = 0; i <= grid.length - patternRows; i++) {
+		for (let j = 0; j <= grid[0].length - patternCols; j++) {
+			let match = true;
+			for (let x = 0; x < patternRows; x++) {
+				for (let y = 0; y < patternCols; y++) {
+					if (grid[i + x][j + y] !== pattern[x][y]) {
+						match = false;
+						break;
+					}
+				}
+				if (!match) break;
+			}
+			if (match) return true;
+		}
+	}
+	return false;
+};
+
 const GameOfLife = () => {
 	const [grid, setGrid] = useState(generateEmptyGrid);
 	const [running, setRunning] = useState(false);
@@ -88,36 +115,89 @@ const GameOfLife = () => {
 	};
 
 	const checkGoals = () => {
-		const glider = [
-			[1, 0, 0],
-			[0, 1, 1],
-			[1, 1, 0],
+		const patterns = [
+			{
+				id: 1,
+				name: "Create a glider",
+				pattern: [
+					[0, 1, 0],
+					[0, 0, 1],
+					[1, 1, 1],
+				],
+			},
+			{
+				id: 2,
+				name: "Create a glider gun",
+				pattern: [
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+						0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+					],
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+						0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
+					],
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
+						0, 0, 0, 0, 0, 0, 0, 1, 1, 0,
+					],
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+						1, 1, 0, 0, 0, 0, 0, 1, 1, 0,
+					],
+					[
+						1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1,
+						0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+					],
+					[
+						1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
+						0, 0, 0, 1, 0, 1, 1, 0, 0, 0,
+					],
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+					],
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					],
+					[
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					],
+				],
+			},
+			{
+				id: 3,
+				name: "Create an eater",
+				pattern: [
+					[1, 1, 0, 0],
+					[1, 0, 1, 0],
+					[0, 0, 1, 0],
+					[0, 0, 1, 1],
+				],
+			},
+			// {
+			// 	id: 4,
+			// 	name: "Create a NOT gate",
+			// 	pattern: [
+			// 		/* NOT gate pattern array */
+			// 	],
+			// },
+			// {
+			// 	id: 5,
+			// 	name: "Create an AND gate",
+			// 	pattern: [
+			// 		/* AND gate pattern array */
+			// 	],
+			// },
 		];
 
-		const isGliderPresent = grid.some((row, i) =>
-			row.some((cell, j) => {
-				if (i + 2 < numRows && j + 2 < numCols) {
-					return (
-						cell === glider[0][0] &&
-						grid[i][j + 1] === glider[0][1] &&
-						grid[i][j + 2] === glider[0][2] &&
-						grid[i + 1][j] === glider[1][0] &&
-						grid[i + 1][j + 1] === glider[1][1] &&
-						grid[i + 1][j + 2] === glider[1][2] &&
-						grid[i + 2][j] === glider[2][0] &&
-						grid[i + 2][j + 1] === glider[2][1] &&
-						grid[i + 2][j + 2] === glider[2][2]
-					);
-				}
-				return false;
-			})
-		);
-
-		// TODO: Check for other goals
-
-		if (isGliderPresent) {
-			updateGoalStatus(1, true);
-		}
+		patterns.forEach(({id, pattern}) => {
+			if (checkPatternInGrid(grid, pattern)) {
+				updateGoalStatus(id, true);
+			}
+		});
 	};
 
 	useEffect(() => {
