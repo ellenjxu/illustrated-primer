@@ -1,4 +1,3 @@
-// app/puzzle1/page.tsx
 "use client";
 import {useState} from "react";
 
@@ -26,13 +25,7 @@ export default function Puzzle1() {
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({
-						message: userInput,
-						history: updatedHistory.map((msg) => ({
-							role: msg.sender === "You" ? "user" : "assistant",
-							content: msg.message,
-						})),
-					}),
+					body: JSON.stringify({message: userInput, history: updatedHistory}),
 				});
 
 				if (!response.ok) {
@@ -62,6 +55,7 @@ export default function Puzzle1() {
 				<a href="/">Back to Home</a>
 			</div>
 			<div className="chatbox">
+				<h2>Chat with GPT-4</h2>
 				<div className="chatOutput">
 					{chatHistory.map((chat, index) => (
 						<div
