@@ -14,23 +14,43 @@ export default function Puzzle1() {
 
 	const sendMessage = async () => {
 		if (userInput.trim()) {
-			setChatHistory([...chatHistory, {sender: "You", message: userInput}]);
+			const newUserMessage = {sender: "You", message: userInput};
+			const updatedHistory = [...chatHistory, newUserMessage];
+
+			setChatHistory(updatedHistory);
 			setUserInput("");
 
-			const response = await fetch("/api/chat", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({message: userInput}),
-			});
+			try {
+				const response = await fetch("/api/chat", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						message: userInput,
+						history: updatedHistory.map((msg) => ({
+							role: msg.sender === "You" ? "user" : "assistant",
+							content: msg.message,
+						})),
+					}),
+				});
 
-			const data = await response.json();
-			setChatHistory([
-				...chatHistory,
-				{sender: "You", message: userInput},
-				{sender: "GPT-4", message: data.response},
-			]);
+				if (!response.ok) {
+					throw new Error("Network response was not ok");
+				}
+
+				const data = await response.json();
+				const gptResponse = {sender: "GPT-4", message: data.response};
+
+				setChatHistory([...updatedHistory, gptResponse]);
+			} catch (error) {
+				console.error("Error:", error);
+				const errorMessage = {
+					sender: "GPT-4",
+					message: "Error communicating with GPT-4 agent.",
+				};
+				setChatHistory([...updatedHistory, errorMessage]);
+			}
 		}
 	};
 

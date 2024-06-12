@@ -1,8 +1,13 @@
 // app/api/chat/route.ts
 import {NextResponse} from "next/server";
+import fs from "fs";
+import path from "path";
+
+const contextFilePath = path.join(process.cwd(), "public/context.md");
+const context = fs.readFileSync(contextFilePath, "utf-8");
 
 export async function POST(request: Request) {
-	const {message} = await request.json();
+	const {message, history} = await request.json();
 
 	// const test = `Responding to: ${message}`;
 	// return NextResponse.json({response: test});
@@ -17,7 +22,7 @@ export async function POST(request: Request) {
 				},
 				body: JSON.stringify({
 					model: "gpt-4",
-					messages: [{role: "user", content: message}],
+					messages: [...history, {role: "user", content: message}],
 					temperature: 0.7,
 				}),
 			}
