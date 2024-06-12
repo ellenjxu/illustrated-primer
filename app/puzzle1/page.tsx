@@ -1,5 +1,7 @@
 "use client";
 import {useState} from "react";
+import GameOfLife from "../../components/GameOfLife";
+import styles from "./Puzzle1.module.css";
 
 export default function Puzzle1() {
 	const [userInput, setUserInput] = useState("");
@@ -33,13 +35,13 @@ export default function Puzzle1() {
 				}
 
 				const data = await response.json();
-				const gptResponse = {sender: "GPT-4", message: data.response};
+				const gptResponse = {sender: "Primer", message: data.response};
 
 				setChatHistory([...updatedHistory, gptResponse]);
 			} catch (error) {
 				console.error("Error:", error);
 				const errorMessage = {
-					sender: "GPT-4",
+					sender: "Primer",
 					message: "Error communicating with GPT-4 agent.",
 				};
 				setChatHistory([...updatedHistory, errorMessage]);
@@ -48,19 +50,18 @@ export default function Puzzle1() {
 	};
 
 	return (
-		<div className="container">
-			<div className="puzzle">
-				<h1>Puzzle 1</h1>
-				<p>Solve the puzzle: What is 2 + 2?</p>
-				<a href="/">Back to Home</a>
+		<div className={styles.container}>
+			<div className={styles.puzzle}>
+				<GameOfLife />
 			</div>
-			<div className="chatbox">
-				<h2>Chat with GPT-4</h2>
-				<div className="chatOutput">
+			<div className={styles.chatbox}>
+				<div className={styles.chatOutput}>
 					{chatHistory.map((chat, index) => (
 						<div
 							key={index}
-							className={chat.sender === "You" ? "userMessage" : "gptMessage"}
+							className={
+								chat.sender === "You" ? styles.userMessage : styles.gptMessage
+							}
 						>
 							<strong>{chat.sender}:</strong> {chat.message}
 						</div>
@@ -71,6 +72,7 @@ export default function Puzzle1() {
 					value={userInput}
 					onChange={handleInputChange}
 					placeholder="Type your message..."
+					className={styles.textInput}
 				/>
 				<button onClick={sendMessage}>Send</button>
 			</div>
