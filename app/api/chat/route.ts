@@ -6,10 +6,37 @@ const contextFilePath = path.join(process.cwd(), "public/context.md");
 const context = fs.readFileSync(contextFilePath, "utf-8");
 
 export async function POST(request: Request) {
-	// const test = `Responding to: ${message}`;
-	// return NextResponse.json({response: test});
+	const {message, history} = await request.json();
+
+	// Fetch current goals
+	let goalsContext = "";
 	try {
-		const {message, history} = await request.json();
+		const goalsResponse = await fetch(
+			`${process.env.NEXT_PUBLIC_BASE_URL}/api/goals`,
+			{
+				method: "GET",
+			}
+		);
+		if (goalsResponse.ok) {
+			const goalsData = await goalsResponse.json();
+			const currentGoals = goalsData.goals.filter(
+				(goal: any) => !goal.completed
+			);
+			goalsContext =
+				currentGoals.length > 0
+					? `Current goals: ${currentGoals
+							.map((goal: any) => goal.name)
+							.join(", ")}.`
+					: "All goals have been completed!";
+		} else {
+			goalsContext = "Unable to fetch current goals at this time.";
+		}
+	} catch (error) {
+		console.error("Error fetching goals:", error);
+		goalsContext = "Unable to fetch current goals at this time.";
+	}
+
+	try {
 		const openAIResponse = await fetch(
 			"https://api.openai.com/v1/chat/completions",
 			{
@@ -24,7 +51,8 @@ export async function POST(request: Request) {
 						{
 							role: "system",
 							content:
-								"You are a narrator in an Illustrated Primer for a young child (around 10 years old), set in a futuristic ice age world. Your role is to answer questions from the child and teach them about the world they are growing up in. Reveal information gradually and with narrative, use simple and concise language. Use the writing style of the following excerpt and Ted Chiang/Ken Liu. Keep answers to 1-2 sentences." +
+								"You are a narrator in an Illustrated Primer for a young child (around 10 years old), set in a futuristic ice age world. Your role is to answer questions from the child and teach them about the world they are growing up in. Reveal information gradually and with narrative, use simple and concise language. Use the writing style of the following excerpt and Ted Chiang/Ken Liu. Keep answers to 1-2 sentences. The user may ask about their next goals and their status:" +
+								goalsContext +
 								context,
 						},
 						...history.map((msg: any) => ({
@@ -37,7 +65,6 @@ export async function POST(request: Request) {
 				}),
 			}
 		);
-
 		if (!openAIResponse.ok) {
 			throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
 		}

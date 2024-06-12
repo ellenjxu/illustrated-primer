@@ -23,9 +23,26 @@ const generateEmptyGrid = () => {
 const GameOfLife = () => {
 	const [grid, setGrid] = useState(generateEmptyGrid);
 	const [running, setRunning] = useState(false);
-
+	const [goalStatus, setGoalStatus] = useState<any[]>([]);
 	const runningRef = useRef(running);
 	runningRef.current = running;
+
+	const fetchGoals = async () => {
+		const response = await fetch("/api/goals");
+		const data = await response.json();
+		setGoalStatus(data.goals);
+	};
+
+	const updateGoalStatus = async (goalId: number, completed: boolean) => {
+		await fetch("/api/goals", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({goalId, completed}),
+		});
+		fetchGoals();
+	};
 
 	const runSimulation = useCallback(() => {
 		if (!runningRef.current) {
@@ -69,6 +86,53 @@ const GameOfLife = () => {
 		);
 		setGrid(newGrid);
 	};
+
+	const checkGoals = () => {
+		const glider = [
+			[1, 0, 0],
+			[0, 1, 1],
+			[1, 1, 0],
+		];
+
+		const isGliderPresent = grid.some((row, i) =>
+			row.some((cell, j) => {
+				if (i + 2 < numRows && j + 2 < numCols) {
+					return (
+						cell === glider[0][0] &&
+						grid[i][j + 1] === glider[0][1] &&
+						grid[i][j + 2] === glider[0][2] &&
+						grid[i + 1][j] === glider[1][0] &&
+						grid[i + 1][j + 1] === glider[1][1] &&
+						grid[i + 1][j + 2] === glider[1][2] &&
+						grid[i + 2][j] === glider[2][0] &&
+						grid[i + 2][j + 1] === glider[2][1] &&
+						grid[i + 2][j + 2] === glider[2][2]
+					);
+				}
+				return false;
+			})
+		);
+
+		// TODO: Check for other goals
+
+		if (isGliderPresent) {
+			updateGoalStatus(1, true);
+		}
+	};
+
+	useEffect(() => {
+		fetchGoals();
+	}, []);
+
+	useEffect(() => {
+		if (running) {
+			checkGoals();
+		}
+	}, [grid]);
+
+	const completedGoalsCount = goalStatus.filter(
+		(goal) => goal.completed
+	).length;
 
 	return (
 		<div className={styles.container}>
@@ -115,6 +179,20 @@ const GameOfLife = () => {
 				>
 					Random
 				</button>
+			</div>
+			<div className={styles.statusBar}>
+				{/* <h3>Goals</h3> */}
+				<p>Number of Goals Completed: {completedGoalsCount}</p>
+				{/* <ul>
+					{goalStatus.map((goal) => (
+						<li
+							key={goal.id}
+							className={goal.completed ? styles.completed : ""}
+						>
+							{goal.name} {goal.completed && "✔"}
+						</li>
+					))}
+				</ul> */}
 			</div>
 		</div>
 	);
