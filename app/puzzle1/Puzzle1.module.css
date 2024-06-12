@@ -34,11 +34,11 @@
 }
 
 .userMessage {
-	color: blue;
+	color: black;
 }
 
 .gptMessage {
-	color: green;
+	color: blue;
 }
 
 .textInput {

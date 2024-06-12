@@ -261,18 +261,16 @@ const GameOfLife = () => {
 				</button>
 			</div>
 			<div className={styles.statusBar}>
-				{/* <h3>Goals</h3> */}
 				<p>Number of Goals Completed: {completedGoalsCount}</p>
-				{/* <ul>
-					{goalStatus.map((goal) => (
-						<li
-							key={goal.id}
-							className={goal.completed ? styles.completed : ""}
-						>
-							{goal.name} {goal.completed && "✔"}
-						</li>
-					))}
-				</ul> */}
+				<ul>
+					{goalStatus
+						.filter((goal) => goal.completed)
+						.map((goal) => (
+							<li key={goal.id} className={styles.completed}>
+								{goal.name} ✔
+							</li>
+						))}
+				</ul>
 			</div>
 		</div>
 	);

@@ -8,7 +8,34 @@ const initialGoals = [
 	{id: 5, name: "Create an AND gate", completed: false},
 ];
 
-let currentGoals = initialGoals;
+const contextKeywords = [
+	{
+		id: 6,
+		name: "Great Ice Age has occurred",
+		keywords: ["Great Ice Age", "Ice Age"],
+		completed: false,
+	},
+	{
+		id: 7,
+		name: "Discovered memristor technology",
+		keywords: ["memristor", "memristors"],
+		completed: false,
+	},
+	{
+		id: 8,
+		name: "Knowledge of religion",
+		keywords: ["Shintoism", "Buddhism"],
+		completed: false,
+	},
+	{
+		id: 9,
+		name: "Discovered ultimate goal",
+		keywords: ["computer", "ultimate goal", "final goal"],
+		completed: false,
+	},
+];
+
+let currentGoals = [...initialGoals, ...contextKeywords];
 
 export async function GET() {
 	return NextResponse.json({goals: currentGoals});

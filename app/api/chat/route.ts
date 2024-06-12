@@ -5,18 +5,41 @@ import path from "path";
 const contextFilePath = path.join(process.cwd(), "public/context.md");
 const context = fs.readFileSync(contextFilePath, "utf-8");
 
+const contextKeywords = [
+	{
+		id: 6,
+		name: "Great Ice Age has occurred",
+		keywords: ["Great Ice Age", "Ice Age"],
+		completed: false,
+	},
+	{
+		id: 7,
+		name: "Discovered memristor technology",
+		keywords: ["memristor", "memristors"],
+		completed: false,
+	},
+	{
+		id: 8,
+		name: "Knowledge of religion",
+		keywords: ["Shintoism", "Buddhism"],
+		completed: false,
+	},
+	{
+		id: 9,
+		name: "Discovered ultimate goal",
+		keywords: ["computer", "ultimate"],
+		completed: false,
+	},
+];
+
 export async function POST(request: Request) {
 	const {message, history} = await request.json();
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+	const goalsUrl = new URL("/api/goals", baseUrl).toString();
 
-	// Fetch current goals
 	let goalsContext = "";
 	try {
-		const goalsResponse = await fetch(
-			`${process.env.NEXT_PUBLIC_BASE_URL}/api/goals`,
-			{
-				method: "GET",
-			}
-		);
+		const goalsResponse = await fetch(goalsUrl, {method: "GET"});
 		if (goalsResponse.ok) {
 			const goalsData = await goalsResponse.json();
 			const currentGoals = goalsData.goals.filter(
@@ -71,6 +94,42 @@ export async function POST(request: Request) {
 
 		const responseData = await openAIResponse.json();
 		const chatResponse = responseData.choices[0].message.content;
+		const mentionedKeywords = contextKeywords.filter(({keywords}) =>
+			keywords.some((keyword) =>
+				chatResponse.toLowerCase().includes(keyword.toLowerCase())
+			)
+		);
+		const goalUpdates = mentionedKeywords.map(({id}) => ({
+			goalId: id,
+			completed: true,
+		}));
+
+		if (goalUpdates.length > 0) {
+			await Promise.all(
+				goalUpdates.map(({goalId, completed}) =>
+					fetch(goalsUrl, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({goalId, completed}),
+					})
+				)
+			);
+		}
+
+		// fetch updated goal
+		const updatedGoalsResponse = await fetch(goalsUrl, {
+			method: "GET",
+		});
+
+		if (updatedGoalsResponse.ok) {
+			const updatedGoalsData = await updatedGoalsResponse.json();
+			return NextResponse.json({
+				response: chatResponse,
+				goals: updatedGoalsData.goals,
+			});
+		}
 
 		return NextResponse.json({response: chatResponse});
 	} catch (error: any) {

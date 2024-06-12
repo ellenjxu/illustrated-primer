@@ -8,7 +8,6 @@ export default function Puzzle1() {
 	const [chatHistory, setChatHistory] = useState<
 		{sender: string; message: string}[]
 	>([]);
-	const [nextGoal, setNextGoal] = useState("");
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setUserInput(e.target.value);
@@ -36,18 +35,13 @@ export default function Puzzle1() {
 				}
 
 				const data = await response.json();
-				const gptResponse = {sender: "GPT-4", message: data.response};
+				const gptResponse = {sender: "Primer", message: data.response};
 
 				setChatHistory([...updatedHistory, gptResponse]);
-
-				// Check if the user asked for the next goal
-				if (/next goal/i.test(userInput)) {
-					setNextGoal(gptResponse.message);
-				}
 			} catch (error) {
 				console.error("Error:", error);
 				const errorMessage = {
-					sender: "GPT-4",
+					sender: "Primer",
 					message: "Error communicating with GPT-4 agent.",
 				};
 				setChatHistory([...updatedHistory, errorMessage]);
@@ -55,20 +49,12 @@ export default function Puzzle1() {
 		}
 	};
 
-	useEffect(() => {
-		// Fetch initial goal state or other setup as needed
-	}, []);
+	useEffect(() => {}, []);
 
 	return (
 		<div className={styles.container}>
 			<div className={styles.puzzle}>
 				<GameOfLife />
-				{/* {nextGoal && (
-					<div className={styles.nextGoal}>
-						<h3>Your Next Goal</h3>
-						<p>{nextGoal}</p>
-					</div>
-				)} */}
 			</div>
 			<div className={styles.chatbox}>
 				<div className={styles.chatOutput}>
